@@ -1,18 +1,9 @@
 import sqlite3
-db = sqlite3
-connection = db.connect("furnis.db")
+from config import db_path
 
+db = sqlite3
+
+connection = db.connect(db_path)
 cursor = connection.cursor()
 
-cursor.execute("""
-    INSERT INTO FURNIS(furni_id, actual_price, low_price)
-    VALUES (?, ?, ?)
-    """,
-    ("","","")
-)
-
-# El error de missmatch se debe a que en la base de datos puse que el ID es un INTEGER xd
-
-connection.commit()
-connection.close()
 

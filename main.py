@@ -1,73 +1,39 @@
-# Module that handles the scrapping
+from furni import Furni
 
-# https://securehabbo.com/legacy/{furni_name}?hotel={language}
-# This is how the URL is build
-from selenium import webdriver
+from scrapper import driver
+from scrapper import getPrices
 
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
+from db import cursor
 
+from init_db import storetodatabase
 
-ap_xpath = "/html/body/div[1]/div/div/div[7]/div/div/dl/div[1]/dd/span[1]"
-lp_xpath = "/html/body/div[1]/div/div/div[7]/div/div/section[1]/header/dl/div[1]/dd/span"
+from config import base_endpoint, hotel_parameter
 
-furni_name = "club_sofa"
+furni_name = "rare_icecream*1" 
+# club_sofa
+# hween_cloth_r26_possessedpumpkin
+# clothing_tattoobody2
+# rare_icecream*1
 language = "es"
 
-# Se rompe cuando le agrego el headless
-options = Options()
-options.add_argument('--headless')
+if __name__ == "__main__":
+    print("Initializing script...")
+    # Entra a la página
+    driver.get(base_endpoint + furni_name + hotel_parameter + language)
 
-driver = webdriver.Chrome()
-driver.get(f"https://securehabbo.com/legacy/{furni_name}?hotel={language}")
+    actual_price, lowest_price = getPrices(furni_name)
+    driver.quit()
 
-def getPrices(furni_name: str):
-    wait = WebDriverWait(driver, timeout=5)
-    wait.until(lambda driver: 
-        driver.find_element(
-        By.XPATH, ap_xpath)
-        and driver.find_element(
-            By.XPATH, lp_xpath))
+    furni = Furni(furni_id=furni_name, actual_price=actual_price, lowest_price=lowest_price, language=language)
+
+    # Inicia la conexión a la base de datos
+    storetodatabase(furni)
     
-    actual_price = driver.find_element(By.XPATH, ap_xpath)
-    low_price = driver.find_element(By.XPATH, lp_xpath)
-    return actual_price, low_price
+
+    
 
 
-ap, lp = getPrices(furni_name)
 
-import sqlite3
-db = sqlite3
-connection = db.connect("furnis.db")
 
-cursor = connection.cursor()
-
-import datetime as dt
-
-current_time = dt.datetime.now()
-
-try:
-    cursor.execute(
-        """
-        INSERT INTO FURNIS(furni_id, actual_price, low_price, last_update)
-        VALUES (?, ?, ?, ?)
-        """,
-        (furni_name, int(ap.text), int(lp.text), current_time)
-    )
-except:
-        cursor.execute(
-        """
-        UPDATE FURNIS
-        SET actual_price = ?, low_price = ?, last_update = ?
-        WHERE furni_id = ?
-        """,
-        (int(ap.text), int(lp.text), current_time, furni_name)
-    )
-
-connection.commit()
-connection.close()
-
-driver.quit()
 
 
