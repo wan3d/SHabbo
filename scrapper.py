@@ -8,6 +8,19 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from config import ap_xpath, lp_xpath, timeout
 
+class Scrapper:
+    def __init__(self): 
+
+
+
+
+
+
+
+
+
+
+
 # Se rompe cuando le agrego el headless
 options = Options()
 options.add_argument('--headless')
